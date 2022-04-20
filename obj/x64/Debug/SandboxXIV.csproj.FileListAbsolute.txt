@@ -1,0 +1,11 @@
+C:\Users\Serda\source\repos\SandboxXIV\obj\x64\Debug\SandboxXIV.csproj.AssemblyReference.cache
+C:\Users\Serda\source\repos\SandboxXIV\obj\x64\Debug\SandboxXIV.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Serda\source\repos\SandboxXIV\obj\x64\Debug\SandboxXIV.AssemblyInfoInputs.cache
+C:\Users\Serda\source\repos\SandboxXIV\obj\x64\Debug\SandboxXIV.AssemblyInfo.cs
+C:\Users\Serda\source\repos\SandboxXIV\obj\x64\Debug\SandboxXIV.csproj.CoreCompileInputs.cache
+C:\Users\Serda\source\repos\SandboxXIV\obj\x64\Debug\SandboxXIV.dll
+C:\Users\Serda\source\repos\SandboxXIV\obj\x64\Debug\SandboxXIV.pdb
+C:\Users\Serda\source\repos\SandboxXIV\bin\x64\Debug\Data\sandboxxiv.json
+C:\Users\Serda\source\repos\SandboxXIV\bin\x64\Debug\SandboxXIV.deps.json
+C:\Users\Serda\source\repos\SandboxXIV\bin\x64\Debug\SandboxXIV.dll
+C:\Users\Serda\source\repos\SandboxXIV\bin\x64\Debug\SandboxXIV.pdb

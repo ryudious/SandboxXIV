@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "PeEs9+G+u1o/lID+HGuAiEYXk81Inhg/AIgH4yL3Vp1dHZmRVOpBdLVtYl5ZBVQKTlj9eRuaJ86Rf/nFGE8Cmg==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Serda\\source\\repos\\SandboxXIV\\SandboxXIV.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Serda\\.nuget\\packages\\dalamudpackager\\2.1.6\\dalamudpackager.2.1.6.nupkg.sha512"
+  ],
+  "logs": []
+}

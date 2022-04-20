@@ -1,0 +1,34 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {
+      "SandboxXIV/0.0.0.1": {
+        "dependencies": {
+          "DalamudPackager": "2.1.6"
+        },
+        "runtime": {
+          "SandboxXIV.dll": {}
+        }
+      },
+      "DalamudPackager/2.1.6": {}
+    }
+  },
+  "libraries": {
+    "SandboxXIV/0.0.0.1": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DalamudPackager/2.1.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-JGgpGP2FMM5Vt4utyDD+xV2+XXfo3Rb3VgJ4FnvzkWlvn4JG/bBILo6mDubWCPjDGqT0n6dF1JRG0r5ygLv/ng==",
+      "path": "dalamudpackager/2.1.6",
+      "hashPath": "dalamudpackager.2.1.6.nupkg.sha512"
+    }
+  }
+}

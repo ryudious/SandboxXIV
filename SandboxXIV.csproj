@@ -1,72 +1,63 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!--Project was exported from assembly: C:\Users\axelm\Desktop\VoidXIV.dll-->
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7082202E-EABA-4C11-8067-681B35403427}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AssemblyName>SandboxXIV</AssemblyName>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <ApplicationVersion>0.0.0.0</ApplicationVersion>
-    <FileAlignment>512</FileAlignment>
-    <RootNamespace>SandboxXIV</RootNamespace>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.Collections" />
-    <Reference Include="System.Diagnostics.Process" />
-    <Reference Include="System.Linq" />
-    <Reference Include="System.Numerics.Vectors" />
-    <Reference Include="System.Runtime" />
-    <Reference Include="System.Runtime.InteropServices" />
-    <Reference Include="System.Text.RegularExpressions" />
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ActionMod.cs" />
-    <Compile Include="Configuration.cs" />
-    <Compile Include="DalamudApi.cs" />
-    <Compile Include="PluginCommandManager`1.cs" />
-    <Compile Include="AliasesAttribute.cs" />
-    <Compile Include="CommandAttribute.cs" />
-    <Compile Include="DoNotShowInHelpAttribute.cs" />
-    <Compile Include="HelpMessageAttribute.cs" />
-    <Compile Include="Editor.cs" />
-    <Compile Include="Memory.cs" />
-    <Compile Include="SandboxXIV.cs" />
-    <Compile Include="WaypointList.cs" />
-    <Compile Include="Structures\Action.cs" />
-    <Compile Include="Structures\OmenSafe.cs" />
-    <Compile Include="Structures\Omen.cs" />
-    <Compile Include="Structures\ZonePacket.cs" />
-    <Compile Include="Editors\ActionEditor.cs" />
-    <Compile Include="Editors\GoldSaucer.cs" />
-    <Compile Include="Editors\MemoryEditor.cs" />
-    <Compile Include="Editors\MiscEditor.cs" />
-    <Compile Include="Editors\PhysicsEditor.cs" />
-    <Compile Include="Editors\PositionEditor.cs" />
-    <Compile Include="AssemblyInfo.cs" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Authors></Authors>
+		<Company></Company>
+		<Version>0.0.0.1</Version>
+		<Description>Sandbox XIV</Description>
+		<Copyright></Copyright>
+		<!--<PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>-->
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<TargetFramework>net5.0-windows</TargetFramework>
+		<Platforms>x64</Platforms>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Content Include=".\Data\sandboxxiv.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<PropertyGroup>
+		<DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="DalamudPackager" Version="2.1.6" />
+		<Reference Include="FFXIVClientStructs">
+			<HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Newtonsoft.Json">
+			<HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Dalamud">
+			<HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="ImGui.NET">
+			<HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="ImGuiScene">
+			<HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Lumina">
+			<HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Lumina.Excel">
+			<HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+	</ItemGroup>
 </Project>
