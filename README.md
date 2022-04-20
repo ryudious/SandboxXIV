@@ -8,8 +8,8 @@ Don't know why, we'll have to see.
 
 # Debugging
 
-Open the source code in MSVS 2022.
-Open FFXIV and add the plugin location in the Dalamud -> Experimental tab.
-Go to Debugging in MSVS 2022 and click attach.
-Attach the debugger to ffxiv instance.
-Load the plugin when logged in using /xlplugins and see the errors.
+ - Open the source code in MSVS 2022.
+ - Open FFXIV and add the plugin location in the Dalamud -> Experimental tab.
+ - Go to Debugging in MSVS 2022 and click attach.
+ - Attach the debugger to ffxiv instance.
+ - Load the plugin when logged in using /xlplugins and see the errors.
