@@ -1,4 +1,6 @@
 ﻿using Dalamud.Game;
+using Dalamud.Game.Command;
+using Dalamud.IoC;
 using Dalamud.Plugin;
 using SandboxXIV.Editors;
 using System;
@@ -11,45 +13,53 @@ namespace SandboxXIV
 {
     public class Plugin : IDalamudPlugin, IDisposable
     {
-        private static readonly List<Editor> editors = new List<Editor>();
+        private static readonly List<Editor> editors = new();
         private readonly bool pluginReady;
         private bool warned;
 
         public string Name => "SandboxXIV";
 
-        public static Configuration Config { get; private set; }
+        private DalamudPluginInterface PluginInterface { get; init; }
+        private CommandManager CommandManager { get; init; }
+        private PluginUI PluginUi { get; init; }
 
-        public static MemoryEditor MemoryEditor { get; private set; }
+        public PluginConfig? Configuration { get; init; }
 
-        public static PositionEditor PositionEditor { get; private set; }
+        public MemoryEditor? MemoryEditor { get; private set; }
 
-        public static PhysicsEditor PhysicsEditor { get; private set; }
+        public PositionEditor? PositionEditor { get; private set; }
 
-        public static ActionEditor ActionEditor { get; private set; }
+        public PhysicsEditor? PhysicsEditor { get; private set; }
 
-        public static MiscEditor MiscEditor { get; private set; }
+        public ActionEditor? ActionEditor { get; private set; }
 
-        public static GoldSaucer GoldSaucer { get; private set; }
+        public MiscEditor? MiscEditor { get; private set; }
 
-        public Plugin(DalamudPluginInterface pluginInterface)
+        public GoldSaucer? GoldSaucer { get; private set; }
+
+        public Plugin([RequiredVersion("1.0")] DalamudPluginInterface pluginInterface, [RequiredVersion("1.0")] CommandManager commandManager)
         {
-            DalamudApi.Initialize(this, pluginInterface);
+            PluginInterface = pluginInterface;
+            CommandManager = commandManager;
 
-            Config = (Configuration)DalamudApi.PluginInterface.GetPluginConfig() ?? new Configuration();
-            Config.Initialize();
+            Configuration = PluginInterface.GetPluginConfig() as PluginConfig ?? new PluginConfig();
+            Configuration.Initialize(PluginInterface);
 
-            DalamudApi.Framework.Update += new Framework.OnUpdateDelegate(Update);
-            DalamudApi.PluginInterface.UiBuilder.Draw += new Action(Draw);
+            Configuration = (PluginConfig)PluginInterface.GetPluginConfig() ?? new PluginConfig();
+            Configuration.Initialize();
+
+            PluginInterface.Framework.Update += new Framework.OnUpdateDelegate(Update);
+            PluginInterface.UiBuilder.Draw += new Action(Draw);
             Memory.Initialize();
 
             editors.Add(MemoryEditor = new MemoryEditor());
             editors.Add(PositionEditor = new PositionEditor());
             editors.Add(PhysicsEditor = new PhysicsEditor());
             editors.Add(ActionEditor = new ActionEditor());
-            editors.Add(MiscEditor = new MiscEditor());
+            editors.Add(MiscEditor = new MiscEditor(PluginInterface, Configuration));
             editors.Add(GoldSaucer = new GoldSaucer());
 
-            this.pluginReady = true;
+            pluginReady = true;
         }
 
         [Command("/nudgeforward")]
@@ -83,12 +93,9 @@ namespace SandboxXIV
             Match match = Regex.Match(argument, "^([-+]?[0-9]*\\.?[0-9]+) ([-+]?[0-9]*\\.?[0-9]+) ([-+]?[0-9]*\\.?[0-9]+)$");
             if (match.Success)
             {
-                float result1;
-                float.TryParse(match.Groups[1].Value, out result1);
-                float result2;
-                float.TryParse(match.Groups[2].Value, out result2);
-                float result3;
-                float.TryParse(match.Groups[3].Value, out result3);
+                float.TryParse(match.Groups[1].Value, out float result1);
+                float.TryParse(match.Groups[2].Value, out float result2);
+                float.TryParse(match.Groups[3].Value, out float result3);
                 PositionEditor.SetPos(result1, result2, result3);
             }
             else
@@ -107,8 +114,7 @@ namespace SandboxXIV
         [HelpMessage("Sets your character's rotation in degrees.")]
         private void OnSetRotation(string command, string argument)
         {
-            float result;
-            float.TryParse(argument, out result);
+            float.TryParse(argument, out float result);
             PositionEditor.SetRotation((float)(((double)result + 90.0) / 180.0 * Math.PI));
         }
 
@@ -140,11 +146,10 @@ namespace SandboxXIV
         [HelpMessage("Changes the next zone you load into. Uses TerritoryType IDs or the internal map path: https://github.com/xivapi/ffxiv-datamining/blob/master/csv/TerritoryType.csv")]
         private void OnSetNextZone(string command, string argument)
         {
-            int result;
-            if (int.TryParse(argument, out result))
+            if (int.TryParse(argument, out int result))
             {
                 MiscEditor.SetNextZone(result);
-                PrintEcho(string.Format("Next area's TerritoryType set to {0}", (object)result));
+                PrintEcho(string.Format("Next area's TerritoryType set to {0}", result));
             }
             else if (!string.IsNullOrEmpty(argument))
             {
@@ -162,10 +167,10 @@ namespace SandboxXIV
             if (string.IsNullOrEmpty(argument))
                 return;
             MiscEditor.LoadMap(argument);
-            if (this.warned)
+            if (warned)
                 return;
             PrintError("In order to leave, you MUST log out or use an exit (E.g. housing exits). You WILL crash if you attempt to teleport.");
-            this.warned = true;
+            warned = true;
         }
 
         [Command("/waypoint")]
@@ -178,7 +183,7 @@ namespace SandboxXIV
             }
             else
             {
-                WaypointList.Waypoint waypoint = Config.Waypoints.FirstOrDefault<WaypointList.Waypoint>((Func<WaypointList.Waypoint, bool>)(w => (int)w.TerritoryType == (int)DalamudApi.ClientState.TerritoryType && w.Name.StartsWith(argument)));
+                WaypointList.Waypoint waypoint = Configuration.Waypoints.FirstOrDefault(w => w.TerritoryType == DalamudApi.ClientState.TerritoryType && w.Name.StartsWith(argument));
                 if (waypoint != null)
                     PositionEditor.SetPos(new Vector3(waypoint.pos[0], waypoint.pos[1], waypoint.pos[2]));
                 else
@@ -219,20 +224,20 @@ namespace SandboxXIV
         [HelpMessage("Opens/closes the misc editor.")]
         private void OnMiscEditor(string command, string argument) => MiscEditor.ToggleEditor();
 
-        public static void PrintEcho(string message) => DalamudApi.ChatGui.Print("[SandboxXIV] " + message);
+        public void PrintEcho(string message) => DalamudApi.ChatGui.Print("[SandboxXIV] " + message);
 
-        public static void PrintError(string message) => DalamudApi.ChatGui.PrintError("[SandboxXIV] " + message);
+        public void PrintError(string message) => DalamudApi.ChatGui.PrintError("[SandboxXIV] " + message);
 
         private void Update(Framework framework)
         {
-            if (!this.pluginReady)
+            if (!pluginReady)
                 return;
             editors.ForEach(editor => editor.Update());
         }
 
         private void Draw()
         {
-            if (!this.pluginReady)
+            if (!pluginReady)
                 return;
             editors.ForEach(editor => editor.Draw(true));
             WaypointList.Draw();
@@ -242,7 +247,7 @@ namespace SandboxXIV
         {
             if (!disposing)
                 return;
-            Config.Save();
+            Configuration.Save();
             DalamudApi.Framework.Update -= new Framework.OnUpdateDelegate(Update);
             DalamudApi.PluginInterface.UiBuilder.Draw -= new Action(Draw);
             editors.ForEach(editor => editor?.Dispose());
@@ -252,8 +257,8 @@ namespace SandboxXIV
 
         public void Dispose()
         {
-            this.Dispose(true);
-            GC.SuppressFinalize((object)this);
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

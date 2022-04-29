@@ -7,6 +7,6 @@ namespace SandboxXIV
     {
         public string Command { get; }
 
-        public CommandAttribute(string command) => this.Command = command;
+        public CommandAttribute(string command) => Command = command;
     }
 }

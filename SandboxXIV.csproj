@@ -28,6 +28,7 @@
 
 	<PropertyGroup>
 		<DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+		<AnalysisLevel>5.0-all</AnalysisLevel>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="DalamudPackager" Version="2.1.6" />

@@ -7,18 +7,18 @@ namespace SandboxXIV.Structures
 {
     public class Action
     {
-        private static readonly unsafe delegate*<uint, uint, uint> _getActionID = (delegate*<uint, uint, uint>)(IntPtr)(void*)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 8B 4B 2C");
+        private static readonly unsafe delegate* unmanaged<uint, uint, uint> _getActionID = (delegate* unmanaged<uint, uint, uint>)(IntPtr)(void*)DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 44 8B 4B 2C");
         public readonly IntPtr Address;
         public readonly uint ID;
 
         public static IntPtr GetAction(uint id) => ActionEditor.GetActionHook.Original(id);
 
-        public Action(IntPtr ptr) => this.Address = ptr;
+        public Action(IntPtr ptr) => Address = ptr;
 
         public Action(uint id)
           : this(ActionEditor.GetActionHook.Original(id))
         {
-            this.ID = id;
+            ID = id;
         }
 
         public unsafe Action(uint actionCategory, uint id)
@@ -26,62 +26,62 @@ namespace SandboxXIV.Structures
         {
         }
 
-        private unsafe ushort NameOffset => *(ushort*)(void*)(this.Address + 0);
+        private unsafe ushort NameOffset => *(ushort*)(void*)(Address + 0);
 
-        public unsafe ref ushort Icon => ref (*(ushort*)(void*)(this.Address + 8));
+        public unsafe ref ushort Icon => ref (*(ushort*)(void*)(Address + 8));
 
-        public unsafe ref ushort HitAnimation => ref (*(ushort*)(void*)(this.Address + 10));
+        public unsafe ref ushort HitAnimation => ref (*(ushort*)(void*)(Address + 10));
 
-        public unsafe ref ushort PrimaryResourceCost => ref (*(ushort*)(void*)(this.Address + 12));
+        public unsafe ref ushort PrimaryResourceCost => ref (*(ushort*)(void*)(Address + 12));
 
-        public unsafe ref ushort SecondaryResourceCost => ref (*(ushort*)(void*)(this.Address + 14));
+        public unsafe ref ushort SecondaryResourceCost => ref (*(ushort*)(void*)(Address + 14));
 
-        public unsafe ref ushort CastTime => ref (*(ushort*)(void*)(this.Address + 18));
+        public unsafe ref ushort CastTime => ref (*(ushort*)(void*)(Address + 18));
 
-        public unsafe ref ushort Omen => ref (*(ushort*)(void*)(this.Address + 24));
+        public unsafe ref ushort Omen => ref (*(ushort*)(void*)(Address + 24));
 
-        public unsafe ref ushort ActionAnimation => ref (*(ushort*)(void*)(this.Address + 26));
+        public unsafe ref ushort ActionAnimation => ref (*(ushort*)(void*)(Address + 26));
 
-        public unsafe ref byte ActionType => ref (*(byte*)(void*)(this.Address + 28));
+        public unsafe ref byte ActionType => ref (*(byte*)(void*)(Address + 28));
 
-        public unsafe ref byte CastAnimation => ref (*(byte*)(void*)(this.Address + 30));
+        public unsafe ref byte CastAnimation => ref (*(byte*)(void*)(Address + 30));
 
-        public unsafe ref byte CastVFX => ref (*(byte*)(void*)(this.Address + 31));
+        public unsafe ref byte CastVFX => ref (*(byte*)(void*)(Address + 31));
 
-        public unsafe ref byte BehaviourType => ref (*(byte*)(void*)(this.Address + 33));
+        public unsafe ref byte BehaviourType => ref (*(byte*)(void*)(Address + 33));
 
-        public unsafe ref byte AquiredLevel => ref (*(byte*)(void*)(this.Address + 34));
+        public unsafe ref byte AquiredLevel => ref (*(byte*)(void*)(Address + 34));
 
-        public unsafe ref byte Radius => ref (*(byte*)(void*)(this.Address + 36));
+        public unsafe ref byte Radius => ref (*(byte*)(void*)(Address + 36));
 
-        public unsafe ref byte PrimaryResourceType => ref (*(byte*)(void*)(this.Address + 38));
+        public unsafe ref byte PrimaryResourceType => ref (*(byte*)(void*)(Address + 38));
 
-        public unsafe ref byte SecondaryResourceType => ref (*(byte*)(void*)(this.Address + 39));
+        public unsafe ref byte SecondaryResourceType => ref (*(byte*)(void*)(Address + 39));
 
-        public unsafe ref byte CooldownGroup => ref (*(byte*)(void*)(this.Address + 40));
+        public unsafe ref byte CooldownGroup => ref (*(byte*)(void*)(Address + 40));
 
-        public unsafe ref byte MaxCharges => ref (*(byte*)(void*)(this.Address + 42));
+        public unsafe ref byte MaxCharges => ref (*(byte*)(void*)(Address + 42));
 
-        public unsafe ref byte UsableClass => ref (*(byte*)(void*)(this.Address + 46));
+        public unsafe ref byte UsableClass => ref (*(byte*)(void*)(Address + 46));
 
-        public unsafe ref byte AquiredClass => ref (*(byte*)(void*)(this.Address + 49));
+        public unsafe ref byte AquiredClass => ref (*(byte*)(void*)(Address + 49));
 
-        public unsafe ref byte Range => ref (*(byte*)(void*)(this.Address + 50));
+        public unsafe ref byte Range => ref (*(byte*)(void*)(Address + 50));
 
-        public unsafe ref byte TargetTypeFlags => ref (*(byte*)(void*)(this.Address + 53));
+        public unsafe ref byte TargetTypeFlags => ref (*(byte*)(void*)(Address + 53));
 
-        public unsafe ref byte TargetFlags => ref (*(byte*)(void*)(this.Address + 54));
+        public unsafe ref byte TargetFlags => ref (*(byte*)(void*)(Address + 54));
 
-        public unsafe ref byte ActionFlags => ref (*(byte*)(void*)(this.Address + 55));
+        public unsafe ref byte ActionFlags => ref (*(byte*)(void*)(Address + 55));
 
         public string Name
         {
-            get => Marshal.PtrToStringAnsi(this.Address + (int)this.NameOffset);
+            get => Marshal.PtrToStringAnsi(Address + NameOffset);
             set
             {
                 value += "\0";
                 byte[] bytes = Encoding.UTF8.GetBytes(value);
-                Marshal.Copy(bytes, 0, this.Address + (int)this.NameOffset, bytes.Length);
+                Marshal.Copy(bytes, 0, Address + NameOffset, bytes.Length);
             }
         }
 

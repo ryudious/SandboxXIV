@@ -7,6 +7,6 @@ namespace SandboxXIV
     {
         public string[] Aliases { get; }
 
-        public AliasesAttribute(params string[] aliases) => this.Aliases = aliases;
+        public AliasesAttribute(params string[] aliases) => Aliases = aliases;
     }
 }

@@ -13,47 +13,47 @@ namespace SandboxXIV
 
         public static void Draw()
         {
-            if (!WaypointList.isVisible)
+            if (!isVisible)
                 return;
             ushort territoryType = DalamudApi.ClientState.TerritoryType;
             ImGui.SetNextWindowSizeConstraints(new Vector2(300f * ImGuiHelpers.GlobalScale), new Vector2(20000f));
-            ImGui.Begin("Waypoint List", ref WaypointList.isVisible);
-            ImGui.Checkbox("Show All Waypoints", ref WaypointList.showAll);
-            Vector2 vector2 = new Vector2(64f * ImGuiHelpers.GlobalScale, 0.0f);
+            ImGui.Begin("Waypoint List", ref isVisible);
+            ImGui.Checkbox("Show All Waypoints", ref showAll);
+            Vector2 vector2 = new(64f * ImGuiHelpers.GlobalScale, 0.0f);
             ImGui.Separator();
             ImGui.Spacing();
-            for (int index = 0; index < Plugin.Config.Waypoints.Count; ++index)
+            for (int index = 0; index < Plugin.Configuration.Waypoints.Count; ++index)
             {
-                WaypointList.Waypoint waypoint = Plugin.Config.Waypoints[index];
-                bool flag = (int)waypoint.TerritoryType == (int)territoryType;
-                if (WaypointList.showAll || flag)
+                Waypoint waypoint = Plugin.Configuration.Waypoints[index];
+                bool flag = waypoint.TerritoryType == territoryType;
+                if (showAll || flag)
                 {
                     ImGui.PushID(index);
                     double num1 = -(double)vector2.X;
                     ImGuiStylePtr style = ImGui.GetStyle();
-                    double x1 = (double)((ImGuiStylePtr)style).WindowPadding.X;
+                    double x1 = style.WindowPadding.X;
                     ImGui.SetNextItemWidth((float)(num1 - x1));
                     if (ImGui.InputText("##Name", ref waypoint.Name, 32U))
-                        Plugin.Config.Save();
-                    Vector3 pos = new Vector3(waypoint.pos[0], waypoint.pos[1], waypoint.pos[2]);
+                        Plugin.Configuration.Save();
+                    Vector3 pos = new(waypoint.pos[0], waypoint.pos[1], waypoint.pos[2]);
                     ImGui.SameLine();
                     if (ImGui.Button("Goto", vector2))
                         Plugin.PositionEditor.SetPos(pos);
                     if (!flag)
                     {
                         ImDrawListPtr windowDrawList = ImGui.GetWindowDrawList();
-                        ((ImDrawListPtr)windowDrawList).AddRectFilled(ImGui.GetItemRectMin(), ImGui.GetItemRectMax(), 536871167U, 5f);
+                        windowDrawList.AddRectFilled(ImGui.GetItemRectMin(), ImGui.GetItemRectMax(), 536871167U, 5f);
                     }
                     double num2 = -(double)vector2.X;
                     style = ImGui.GetStyle();
-                    double x2 = (double)((ImGuiStylePtr)style).WindowPadding.X;
+                    double x2 = style.WindowPadding.X;
                     ImGui.SetNextItemWidth((float)(num2 - x2));
                     if (ImGui.DragFloat3("##Position", ref pos))
                     {
                         waypoint.pos[0] = pos.X;
                         waypoint.pos[1] = pos.Y;
                         waypoint.pos[2] = pos.Z;
-                        Plugin.Config.Save();
+                        Plugin.Configuration.Save();
                     }
                     ImGui.SameLine();
                     ImGui.Button("Delete", vector2);
@@ -62,8 +62,8 @@ namespace SandboxXIV
                         ImGui.SetTooltip("Right click to delete!");
                         if (ImGui.IsMouseReleased((ImGuiMouseButton)1))
                         {
-                            Plugin.Config.Waypoints.RemoveAt(index);
-                            ImGui.SetWindowFocus((string)null);
+                            Plugin.Configuration.Waypoints.RemoveAt(index);
+                            ImGui.SetWindowFocus(null);
                         }
                     }
                     ImGui.NextColumn();
@@ -79,15 +79,15 @@ namespace SandboxXIV
                 PlayerCharacter localPlayer = DalamudApi.ClientState.LocalPlayer;
                 if (localPlayer != null)
                 {
-                    Plugin.Config.Waypoints.Add(new WaypointList.Waypoint("", territoryType, new Vector3(((GameObject)localPlayer).Position.X, ((GameObject)localPlayer).Position.Z, ((GameObject)localPlayer).Position.Y)));
-                    Plugin.Config.Save();
+                    Plugin.Configuration.Waypoints.Add(new Waypoint("", territoryType, new Vector3(localPlayer.Position.X, localPlayer.Position.Z, localPlayer.Position.Y)));
+                    Plugin.Configuration.Save();
                 }
             }
             ImGui.SameLine();
             if (Plugin.PositionEditor.savedPos.Item1 && ImGui.Button("Add /savepos Position"))
             {
-                Plugin.Config.Waypoints.Add(new WaypointList.Waypoint("", territoryType, Plugin.PositionEditor.savedPos.Item2));
-                Plugin.Config.Save();
+                Plugin.Configuration.Waypoints.Add(new Waypoint("", territoryType, Plugin.PositionEditor.savedPos.Item2));
+                Plugin.Configuration.Save();
             }
             ImGui.End();
         }
@@ -105,9 +105,9 @@ namespace SandboxXIV
 
             public Waypoint(string name, ushort zone, float x, float y, float z)
             {
-                this.Name = name;
-                this.TerritoryType = zone;
-                this.pos = new float[3] { x, y, z };
+                Name = name;
+                TerritoryType = zone;
+                pos = new float[3] { x, y, z };
             }
 
             public Waypoint()

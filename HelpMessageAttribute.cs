@@ -7,6 +7,6 @@ namespace SandboxXIV
     {
         public string HelpMessage { get; }
 
-        public HelpMessageAttribute(string helpMessage) => this.HelpMessage = helpMessage;
+        public HelpMessageAttribute(string helpMessage) => HelpMessage = helpMessage;
     }
 }

@@ -21,127 +21,127 @@ namespace SandboxXIV.Editors
         private Vector3 posDelta = Vector3.Zero;
         public (bool, Vector3) savedPos = (false, Vector3.Zero);
 
-        public IntPtr PlayerAddress => ((GameObject)this.client.LocalPlayer).Address;
+        public IntPtr PlayerAddress => client.LocalPlayer.Address;
 
         public bool Ready => client.LocalPlayer != null;
 
         private float X
         {
-            get => this.PlayerX;
+            get => PlayerX;
             set
             {
-                if (this.MovementState == 0)
+                if (MovementState == 0)
                 {
-                    this.PlayerX = value;
-                    if (!(this.ModelAddress != IntPtr.Zero))
+                    PlayerX = value;
+                    if (!(ModelAddress != IntPtr.Zero))
                         return;
-                    this.ModelX = value;
+                    ModelX = value;
                 }
                 else
                 {
-                    if (!(this.flyingAddress != IntPtr.Zero))
+                    if (!(flyingAddress != IntPtr.Zero))
                         return;
-                    this.FlyingX = value;
+                    FlyingX = value;
                 }
             }
         }
 
         private float Z
         {
-            get => this.PlayerZ;
+            get => PlayerZ;
             set
             {
-                if (this.MovementState == 0)
+                if (MovementState == 0)
                 {
-                    this.PlayerZ = value;
-                    if (!(this.ModelAddress != IntPtr.Zero))
+                    PlayerZ = value;
+                    if (!(ModelAddress != IntPtr.Zero))
                         return;
-                    this.ModelZ = value;
+                    ModelZ = value;
                 }
                 else
                 {
-                    if (!(this.flyingAddress != IntPtr.Zero))
+                    if (!(flyingAddress != IntPtr.Zero))
                         return;
-                    this.FlyingZ = value;
+                    FlyingZ = value;
                 }
             }
         }
 
         private float Y
         {
-            get => this.PlayerY;
+            get => PlayerY;
             set
             {
-                if (this.MovementState == 0)
+                if (MovementState == 0)
                 {
-                    this.PlayerY = value;
-                    if (!(this.ModelAddress != IntPtr.Zero))
+                    PlayerY = value;
+                    if (!(ModelAddress != IntPtr.Zero))
                         return;
-                    this.ModelY = value;
+                    ModelY = value;
                 }
                 else
                 {
-                    if (!(this.flyingAddress != IntPtr.Zero))
+                    if (!(flyingAddress != IntPtr.Zero))
                         return;
-                    this.FlyingY = value;
+                    FlyingY = value;
                 }
             }
         }
 
         private float Rotation
         {
-            get => this.PlayerRotation;
+            get => PlayerRotation;
             set
             {
-                this.PlayerRotation = value;
-                if (!(this.ModelAddress != IntPtr.Zero))
+                PlayerRotation = value;
+                if (!(ModelAddress != IntPtr.Zero))
                     return;
-                this.ModelRotationX = (float)-Math.Cos(((double)value + Math.PI) / 2.0);
-                this.ModelRotationY = (float)Math.Sin(((double)value + Math.PI) / 2.0);
+                ModelRotationX = (float)-Math.Cos(((double)value + Math.PI) / 2.0);
+                ModelRotationY = (float)Math.Sin(((double)value + Math.PI) / 2.0);
             }
         }
 
-        private unsafe ref float PlayerX => ref (*(float*)(void*)(this.PlayerAddress + 160));
+        private unsafe ref float PlayerX => ref (*(float*)(void*)(PlayerAddress + 160));
 
-        private unsafe ref float PlayerZ => ref (*(float*)(void*)(this.PlayerAddress + 164));
+        private unsafe ref float PlayerZ => ref (*(float*)(void*)(PlayerAddress + 164));
 
-        private unsafe ref float PlayerY => ref (*(float*)(void*)(this.PlayerAddress + 168));
+        private unsafe ref float PlayerY => ref (*(float*)(void*)(PlayerAddress + 168));
 
-        private unsafe ref float PlayerRotation => ref (*(float*)(void*)(this.PlayerAddress + 176));
+        private unsafe ref float PlayerRotation => ref (*(float*)(void*)(PlayerAddress + 176));
 
-        public unsafe ref int MovementState => ref (*(int*)(void*)(this.PlayerAddress + 3012));
+        public unsafe ref int MovementState => ref (*(int*)(void*)(PlayerAddress + 3012));
 
-        public unsafe IntPtr ModelAddress => *(IntPtr*)(void*)(this.PlayerAddress + 240);
+        public unsafe IntPtr ModelAddress => *(IntPtr*)(void*)(PlayerAddress + 240);
 
-        private unsafe ref float ModelX => ref (*(float*)(void*)(this.ModelAddress + 80));
+        private unsafe ref float ModelX => ref (*(float*)(void*)(ModelAddress + 80));
 
-        private unsafe ref float ModelZ => ref (*(float*)(void*)(this.ModelAddress + 84));
+        private unsafe ref float ModelZ => ref (*(float*)(void*)(ModelAddress + 84));
 
-        private unsafe ref float ModelY => ref (*(float*)(void*)(this.ModelAddress + 88));
+        private unsafe ref float ModelY => ref (*(float*)(void*)(ModelAddress + 88));
 
-        private unsafe ref float ModelRotationX => ref (*(float*)(void*)(this.ModelAddress + 100));
+        private unsafe ref float ModelRotationX => ref (*(float*)(void*)(ModelAddress + 100));
 
-        private unsafe ref float ModelRotationZ => ref (*(float*)(void*)(this.ModelAddress + 104));
+        private unsafe ref float ModelRotationZ => ref (*(float*)(void*)(ModelAddress + 104));
 
-        private unsafe ref float ModelRotationY => ref (*(float*)(void*)(this.ModelAddress + 108));
+        private unsafe ref float ModelRotationY => ref (*(float*)(void*)(ModelAddress + 108));
 
-        private unsafe ref float FlyingX => ref (*(float*)(void*)(this.flyingAddress + 16));
+        private unsafe ref float FlyingX => ref (*(float*)(void*)(flyingAddress + 16));
 
-        private unsafe ref float FlyingZ => ref (*(float*)(void*)(this.flyingAddress + 20));
+        private unsafe ref float FlyingZ => ref (*(float*)(void*)(flyingAddress + 20));
 
-        private unsafe ref float FlyingY => ref (*(float*)(void*)(this.flyingAddress + 24));
+        private unsafe ref float FlyingY => ref (*(float*)(void*)(flyingAddress + 24));
 
-        private unsafe ref float FlyingHRotation => ref (*(float*)(void*)(this.flyingAddress + 64));
+        private unsafe ref float FlyingHRotation => ref (*(float*)(void*)(flyingAddress + 64));
 
-        private unsafe ref float FlyingVRotation => ref (*(float*)(void*)(this.flyingAddress + 156));
+        private unsafe ref float FlyingVRotation => ref (*(float*)(void*)(flyingAddress + 156));
 
         public PositionEditor()
         {
-            this.editorConfig = ("Position Editor", new Vector2(200f, 0.0f), (ImGuiWindowFlags)2);
-            this.client = DalamudApi.ClientState;
+            editorConfig = ("Position Editor", new Vector2(200f, 0.0f), (ImGuiWindowFlags)2);
+            client = DalamudApi.ClientState;
             try
             {
-                this.flyingAddress = DalamudApi.SigScanner.GetStaticAddressFromSig("E8 ?? ?? ?? ?? F6 40 70 01", 39);
+                flyingAddress = DalamudApi.SigScanner.GetStaticAddressFromSig("E8 ?? ?? ?? ?? F6 40 70 01", 39);
             }
             catch
             {
@@ -151,111 +151,111 @@ namespace SandboxXIV.Editors
 
         public void NudgeForward(float amount)
         {
-            if (!this.Ready)
+            if (!Ready)
                 return;
-            if (this.MovementState > 0)
+            if (MovementState > 0)
             {
-                float num = amount * -(this.FlyingVRotation / 1.570796f);
+                float num = amount * -(FlyingVRotation / 1.570796f);
                 amount -= Math.Abs(num);
-                this.Z += num;
+                Z += num;
             }
-            double num1 = (double)this.Rotation + Math.PI;
-            this.X += amount * (float)-Math.Sin(num1);
-            this.Y += amount * (float)-Math.Cos(num1);
-            this.posInitialized = false;
+            double num1 = (double)Rotation + Math.PI;
+            X += amount * (float)-Math.Sin(num1);
+            Y += amount * (float)-Math.Cos(num1);
+            posInitialized = false;
         }
 
         public void NudgeUp(float amount)
         {
-            if (!this.Ready)
+            if (!Ready)
                 return;
-            this.Z += amount;
-            this.posInitialized = false;
+            Z += amount;
+            posInitialized = false;
         }
 
         public void SetPos(float x, float y, float z)
         {
-            if (!this.Ready)
+            if (!Ready)
                 return;
-            this.X = x;
-            this.Y = y;
-            this.Z = z;
-            this.posInitialized = false;
+            X = x;
+            Y = y;
+            Z = z;
+            posInitialized = false;
         }
 
-        public void SetPos(Vector3 pos) => this.SetPos(pos.X, pos.Y, pos.Z);
+        public void SetPos(Vector3 pos) => SetPos(pos.X, pos.Y, pos.Z);
 
-        public void MovePos(float x, float y, float z) => this.SetPos(this.X + x, this.Y + y, this.Z + z);
+        public void MovePos(float x, float y, float z) => SetPos(X + x, Y + y, Z + z);
 
-        public void SavePos() => this.savedPos = (true, new Vector3(this.X, this.Y, this.Z));
+        public void SavePos() => savedPos = (true, new Vector3(X, Y, Z));
 
         public void LoadPos()
         {
-            if (this.savedPos.Item1)
-                this.SetPos(this.savedPos.Item2);
+            if (savedPos.Item1)
+                SetPos(savedPos.Item2);
             else
                 Plugin.PrintError("You need to use \"/savepos\" first!");
         }
 
         public void SetRotation(float r)
         {
-            if (!this.Ready)
+            if (!Ready)
                 return;
-            this.Rotation = r;
+            Rotation = r;
         }
 
-        public void SetSpeed(float s) => this.speed = s;
+        public void SetSpeed(float s) => speed = s;
 
         public override void Update()
         {
-            if (!this.Ready)
+            if (!Ready)
             {
-                this.posInitialized = false;
+                posInitialized = false;
             }
             else
             {
-                if (this.posInitialized && (double)this.speed != 1.0)
+                if (posInitialized && speed != 1.0)
                 {
-                    this.posDelta.X = this.X - this.prevPos.X;
-                    this.posDelta.Y = this.Y - this.prevPos.Y;
-                    this.posDelta.Z = this.Z - this.prevPos.Z;
-                    if ((double)this.posDelta.Length() <= 5.0)
+                    posDelta.X = X - prevPos.X;
+                    posDelta.Y = Y - prevPos.Y;
+                    posDelta.Z = Z - prevPos.Z;
+                    if ((double)posDelta.Length() <= 5.0)
                     {
-                        float num = this.speed - 1f;
-                        this.MovePos(this.posDelta.X * num, this.posDelta.Y * num, 0.0f);
-                        if (this.MovementState > 0)
+                        float num = speed - 1f;
+                        MovePos(posDelta.X * num, posDelta.Y * num, 0.0f);
+                        if (MovementState > 0)
                         {
-                            this.PlayerX = this.FlyingX;
-                            this.PlayerY = this.FlyingY;
-                            this.PlayerZ = this.FlyingZ - 1E-05f;
+                            PlayerX = FlyingX;
+                            PlayerY = FlyingY;
+                            PlayerZ = FlyingZ - 1E-05f;
                         }
                     }
                 }
-                this.prevPos.X = this.X;
-                this.prevPos.Y = this.Y;
-                this.prevPos.Z = this.Z;
-                this.posInitialized = true;
+                prevPos.X = X;
+                prevPos.Y = Y;
+                prevPos.Z = Z;
+                posInitialized = true;
             }
         }
 
         protected override void Draw()
         {
-            if (this.Ready)
+            if (Ready)
             {
                 ImGuiInputTextFlags flags = (ImGuiInputTextFlags)32;
-                if (ImGui.Checkbox("Enable editing", ref this.editingEnabled) && !this.editingEnabled)
-                    this.speed = 1f;
-                if (!this.editingEnabled)
+                if (ImGui.Checkbox("Enable editing", ref editingEnabled) && !editingEnabled)
+                    speed = 1f;
+                if (!editingEnabled)
                     flags = (ImGuiInputTextFlags)((int)flags | 16384);
-                FreezeInputFloat("X", ref this.editorX, this.X, (Action<float>)(val => this.X = val), 0.1f, 1f, (Func<float, float>)null, (Func<float, float>)null);
-                FreezeInputFloat("Y", ref this.editorY, this.Y, (Action<float>)(val => this.Y = val), 0.1f, 1f, (Func<float, float>)null, (Func<float, float>)null);
-                FreezeInputFloat("Z", ref this.editorZ, this.Z, (Action<float>)(val => this.Z = val), 0.1f, 1f, (Func<float, float>)null, (Func<float, float>)null);
-                FreezeInputFloat("R", ref this.editorRotation, this.Rotation, (Action<float>)(val => this.Rotation = val), 1f, 10f, (Func<float, float>)(mem => (float)((((double)mem + Math.PI) * 180.0 / Math.PI + 90.0) % 360.0)), (Func<float, float>)(val => (float)(((double)val + 90.0) / 180.0 * Math.PI)));
+                FreezeInputFloat("X", ref editorX, X, val => X = val, 0.1f, 1f, null, null);
+                FreezeInputFloat("Y", ref editorY, Y, val => Y = val, 0.1f, 1f, null, null);
+                FreezeInputFloat("Z", ref editorZ, Z, val => Z = val, 0.1f, 1f, null, null);
+                FreezeInputFloat("R", ref editorRotation, Rotation, val => Rotation = val, 1f, 10f, mem => (float)((((double)mem + Math.PI) * 180.0 / Math.PI + 90.0) % 360.0), val => (float)(((double)val + 90.0) / 180.0 * Math.PI));
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("The game actually stores this as -pi -> pi with South being 0,\nbut, for ease of editing, it's converted to degrees with East being 0.\nReal value: " + this.Rotation.ToString());
+                    ImGui.SetTooltip("The game actually stores this as -pi -> pi with South being 0,\nbut, for ease of editing, it's converted to degrees with East being 0.\nReal value: " + Rotation.ToString());
                 ImGui.Spacing();
                 ImGui.Spacing();
-                ImGui.InputFloat("Speed", ref this.speed, 0.1f, 1f, "%.2f", this.editingEnabled ? (ImGuiInputTextFlags)0 : (ImGuiInputTextFlags)16384);
+                ImGui.InputFloat("Speed", ref speed, 0.1f, 1f, "%.2f", editingEnabled ? 0 : (ImGuiInputTextFlags)16384);
                 ImGui.Spacing();
                 ImGui.Spacing();
                 if (!ImGui.Button("Waypoints"))
@@ -272,13 +272,13 @@ namespace SandboxXIV.Editors
                   Func<float, float> convertFrom,
                   Func<float, float> convertTo)
                 {
-                    if (!this.editingEnabled)
+                    if (!editingEnabled)
                         val.Item1 = false;
                     bool flag = val.Item1;
-                    if (ImGui.Checkbox("##Freeze" + id, ref flag) && this.editingEnabled)
+                    if (ImGui.Checkbox("##Freeze" + id, ref flag) && editingEnabled)
                     {
                         val.Item1 = flag;
-                        this.posInitialized = false;
+                        posInitialized = false;
                     }
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip("Freeze value");
@@ -287,7 +287,7 @@ namespace SandboxXIV.Editors
                     if (ImGui.InputFloat(id, ref val.Item2, step, step_fast, "%f", flags))
                     {
                         SetMemory(convertTo != null ? convertTo(val.Item2) : val.Item2);
-                        this.posInitialized = false;
+                        posInitialized = false;
                     }
                     if (!val.Item1)
                         return;

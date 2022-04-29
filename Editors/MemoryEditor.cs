@@ -11,36 +11,35 @@ namespace SandboxXIV.Editors
     {
         private IntPtr editorAddress = IntPtr.Zero;
         private string editorSig = string.Empty;
-        private Memory.ReplacerBuilder editorBuilder = new Memory.ReplacerBuilder();
-        private readonly List<(Memory.ReplacerBuilder builder, Memory.Replacer replacer)> editorReplacers = new List<(Memory.ReplacerBuilder, Memory.Replacer)>();
+        private Memory.ReplacerBuilder editorBuilder = new();
+        private readonly List<(Memory.ReplacerBuilder builder, Memory.Replacer replacer)> editorReplacers = new();
 
         private string EditorAddressHexString
         {
-            get => this.editorAddress.ToString("X");
+            get => editorAddress.ToString("X");
             set
             {
-                long result;
-                if (long.TryParse(value, NumberStyles.HexNumber, (IFormatProvider)null, out result))
-                    this.editorAddress = (IntPtr)result;
+                if (long.TryParse(value, NumberStyles.HexNumber, null, out long result))
+                    editorAddress = (IntPtr)result;
                 else
-                    this.editorAddress = IntPtr.Zero;
+                    editorAddress = IntPtr.Zero;
             }
         }
 
         public MemoryEditor()
         {
-            this.editorConfig = ("Memory Editor", new Vector2(900f, 0.0f), (ImGuiWindowFlags)2);
-            if (Plugin.Config.HelpMeIveFallenAndICantGetUp)
+            editorConfig = ("Memory Editor", new Vector2(900f, 0.0f), (ImGuiWindowFlags)2);
+            if (Plugin.Configuration.HelpMeIveFallenAndICantGetUp)
             {
-                foreach (Memory.ReplacerBuilder customReplacer in Plugin.Config.CustomReplacers)
+                foreach (Memory.ReplacerBuilder customReplacer in Plugin.Configuration.CustomReplacers)
                     customReplacer.AutoEnable = false;
             }
-            Plugin.Config.HelpMeIveFallenAndICantGetUp = true;
-            Plugin.Config.Save();
-            foreach (Memory.ReplacerBuilder customReplacer in Plugin.Config.CustomReplacers)
-                this.editorReplacers.Add((customReplacer, customReplacer.ToReplacer()));
-            Plugin.Config.HelpMeIveFallenAndICantGetUp = false;
-            Plugin.Config.Save();
+            Plugin.Configuration.HelpMeIveFallenAndICantGetUp = true;
+            Plugin.Configuration.Save();
+            foreach (Memory.ReplacerBuilder customReplacer in Plugin.Configuration.CustomReplacers)
+                editorReplacers.Add((customReplacer, customReplacer.ToReplacer()));
+            Plugin.Configuration.HelpMeIveFallenAndICantGetUp = false;
+            Plugin.Configuration.Save();
         }
 
         protected override void Draw()
@@ -48,28 +47,28 @@ namespace SandboxXIV.Editors
             ImGui.BeginTabBar("MemoryEditorTabs");
             if (ImGui.BeginTabItem("View"))
             {
-                double num1 = (double)ImGui.GetContentRegionAvail().X / 8.0 * 7.0;
+                double num1 = ImGui.GetContentRegionAvail().X / 8.0 * 7.0;
                 if (ImGui.Button("Add base address"))
-                    this.editorAddress = (IntPtr)(this.editorAddress.ToInt64() + DalamudApi.SigScanner.Module.BaseAddress.ToInt64());
+                    editorAddress = (IntPtr)(editorAddress.ToInt64() + DalamudApi.SigScanner.Module.BaseAddress.ToInt64());
                 ImGui.SameLine();
-                double num2 = num1 - (double)ImGui.GetItemRectSize().X;
+                double num2 = num1 - ImGui.GetItemRectSize().X;
                 ImGuiStylePtr style = ImGui.GetStyle();
-                double x = (double)((ImGuiStylePtr)style).ItemSpacing.X;
+                double x = style.ItemSpacing.X;
                 ImGui.SetNextItemWidth((float)(num2 - x));
-                string addressHexString = this.EditorAddressHexString;
+                string addressHexString = EditorAddressHexString;
                 if (ImGui.InputText("Address", ref addressHexString, 16U, (ImGuiInputTextFlags)6))
-                    this.EditorAddressHexString = addressHexString;
+                    EditorAddressHexString = addressHexString;
                 ImGui.SetNextItemWidth((float)num1);
-                ImGui.InputText("Signature", ref this.editorSig, 512U);
+                ImGui.InputText("Signature", ref editorSig, 512U);
                 if (ImGui.Button("Scan Module"))
                 {
                     try
                     {
-                        this.editorAddress = DalamudApi.SigScanner.ScanModule(this.editorSig);
+                        editorAddress = DalamudApi.SigScanner.ScanModule(editorSig);
                     }
                     catch
                     {
-                        this.editorAddress = IntPtr.Zero;
+                        editorAddress = IntPtr.Zero;
                     }
                 }
                 ImGui.SameLine();
@@ -77,11 +76,11 @@ namespace SandboxXIV.Editors
                 {
                     try
                     {
-                        this.editorAddress = DalamudApi.SigScanner.ScanText(this.editorSig);
+                        editorAddress = DalamudApi.SigScanner.ScanText(editorSig);
                     }
                     catch
                     {
-                        this.editorAddress = IntPtr.Zero;
+                        editorAddress = IntPtr.Zero;
                     }
                 }
                 ImGui.SameLine();
@@ -89,11 +88,11 @@ namespace SandboxXIV.Editors
                 {
                     try
                     {
-                        this.editorAddress = DalamudApi.SigScanner.ScanData(this.editorSig);
+                        editorAddress = DalamudApi.SigScanner.ScanData(editorSig);
                     }
                     catch
                     {
-                        this.editorAddress = IntPtr.Zero;
+                        editorAddress = IntPtr.Zero;
                     }
                 }
                 ImGui.SameLine();
@@ -101,28 +100,27 @@ namespace SandboxXIV.Editors
                 {
                     try
                     {
-                        this.editorAddress = DalamudApi.SigScanner.GetStaticAddressFromSig(this.editorSig, 0);
+                        editorAddress = DalamudApi.SigScanner.GetStaticAddressFromSig(editorSig, 0);
                     }
                     catch
                     {
-                        this.editorAddress = IntPtr.Zero;
+                        editorAddress = IntPtr.Zero;
                     }
                 }
-                if (this.editorAddress != IntPtr.Zero)
+                if (editorAddress != IntPtr.Zero)
                 {
                     for (int index1 = -2; index1 < 4; ++index1)
                     {
                         int num3 = 32 * index1;
-                        byte[] numArray;
-                        if (SafeMemory.ReadBytes(this.editorAddress + num3, 32, out numArray))
+                        if (SafeMemory.ReadBytes(editorAddress + num3, 32, out byte[] numArray))
                         {
                             string str = string.Empty;
                             for (int index2 = 0; index2 < numArray.Length; ++index2)
                                 str = str + numArray[index2].ToString("X2") + ((index2 + 1) % 8 != 0 || index2 == numArray.Length - 1 ? " " : " | ");
                             if (num3 >= 0)
-                                ImGui.Text(string.Format("+0x{0:X2}  -", (object)num3));
+                                ImGui.Text(string.Format("+0x{0:X2}  -", num3));
                             else
-                                ImGui.Text(string.Format("-0x{0:X2}  -", (object)-num3));
+                                ImGui.Text(string.Format("-0x{0:X2}  -", -num3));
                             ImGui.SameLine();
                             ImGui.Text(str);
                         }
@@ -133,9 +131,9 @@ namespace SandboxXIV.Editors
             if (ImGui.BeginTabItem("Replacers"))
             {
                 float inputWidths = ImGui.GetContentRegionAvail().X / 6.3f;
-                for (int index = 0; index < this.editorReplacers.Count; ++index)
-                    AddReplacerEditor(index, this.editorReplacers[index].builder, this.editorReplacers[index].replacer);
-                AddReplacerEditor(this.editorReplacers.Count + 1, this.editorBuilder, (Memory.Replacer)null);
+                for (int index = 0; index < editorReplacers.Count; ++index)
+                    AddReplacerEditor(index, editorReplacers[index].builder, editorReplacers[index].replacer);
+                AddReplacerEditor(editorReplacers.Count + 1, editorBuilder, null);
                 ImGui.EndTabItem();
 
                 void AddReplacerEditor(int id, Memory.ReplacerBuilder builder, Memory.Replacer replacer)
@@ -150,13 +148,13 @@ namespace SandboxXIV.Editors
                     ImGui.SameLine();
                     builder.AutoEnable = !flag1 && builder.AutoEnable;
                     if (ImGui.Checkbox("##AutoEnable", ref builder.AutoEnable) && !flag1)
-                        Plugin.Config.Save();
+                        Plugin.Configuration.Save();
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip("Enable Automatically");
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(inputWidths);
                     if (ImGui.InputTextWithHint("##Name", "Name", ref builder.Name, 64U) && !flag1)
-                        Plugin.Config.Save();
+                        Plugin.Configuration.Save();
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip("Name");
                     ImGui.SameLine();
@@ -173,13 +171,13 @@ namespace SandboxXIV.Editors
                         {
                             builder.AutoEnable = false;
                             replacer.Dispose();
-                            this.editorReplacers[id] = (builder, builder.ToReplacer());
-                            Plugin.Config.Save();
+                            editorReplacers[id] = (builder, builder.ToReplacer());
+                            Plugin.Configuration.Save();
                         }
                     }
                     if (ImGui.IsItemHovered())
                     {
-                        ImGui.SetTooltip("The signature or offset to start replacing.\nPress enter to apply." + (!flag1 ? string.Format("\n\nCurrent location: {0:X}\n", (object)replacer.Address) + replacer.ReadBytes + "\nRight click to copy this address." : ""));
+                        ImGui.SetTooltip("The signature or offset to start replacing.\nPress enter to apply." + (!flag1 ? string.Format("\n\nCurrent location: {0:X}\n", replacer.Address) + replacer.ReadBytes + "\nRight click to copy this address." : ""));
                         if (ImGui.IsMouseReleased((ImGuiMouseButton)1))
                             ImGui.SetClipboardText(replacer.Address.ToString("X"));
                     }
@@ -193,8 +191,8 @@ namespace SandboxXIV.Editors
                         {
                             builder.AutoEnable = false;
                             replacer.Dispose();
-                            this.editorReplacers[id] = (builder, builder.ToReplacer());
-                            Plugin.Config.Save();
+                            editorReplacers[id] = (builder, builder.ToReplacer());
+                            Plugin.Configuration.Save();
                         }
                     }
                     if (ImGui.IsItemHovered())
@@ -204,18 +202,18 @@ namespace SandboxXIV.Editors
                     {
                         if (ImGui.Button("Add"))
                         {
-                            Plugin.Config.CustomReplacers.Add(builder);
-                            this.editorReplacers.Add((builder, builder.ToReplacer()));
-                            this.editorBuilder = new Memory.ReplacerBuilder();
-                            Plugin.Config.Save();
+                            Plugin.Configuration.CustomReplacers.Add(builder);
+                            editorReplacers.Add((builder, builder.ToReplacer()));
+                            editorBuilder = new Memory.ReplacerBuilder();
+                            Plugin.Configuration.Save();
                         }
                     }
                     else if (ImGui.Button("Delete"))
                     {
                         replacer.Dispose();
-                        this.editorReplacers.RemoveAt(id);
-                        Plugin.Config.CustomReplacers.Remove(builder);
-                        Plugin.Config.Save();
+                        editorReplacers.RemoveAt(id);
+                        Plugin.Configuration.CustomReplacers.Remove(builder);
+                        Plugin.Configuration.Save();
                     }
                     ImGui.PopID();
                 }

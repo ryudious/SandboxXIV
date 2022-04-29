@@ -14,51 +14,15 @@ namespace SandboxXIV.Editors
 {
     public class ActionEditor : Editor
     {
-        public readonly Memory.Replacer infGroundTargetReplacer = new Memory.Replacer("0F 85 ?? ?? ?? ?? 40 80 FF 01 0F 85", new byte[6]
-        {
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144
-        });
-        public readonly Memory.Replacer allClassReplacer = new Memory.Replacer("0F 84 ?? ?? ?? ?? 0F B6 45 31 84 C0 75", new byte[14]
-        {
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144,
-      (byte) 144
-        });
-        public readonly Memory.Replacer castTime000Replacer = new Memory.Replacer("0F B7 48 12 66 85 C9 0F", new byte[4]
-        {
-      (byte) 102,
-      (byte) 185,
-      (byte) 0,
-      (byte) 0
-        });
-        public readonly Memory.Replacer castTime500Replacer = new Memory.Replacer("0F B7 48 12 66 85 C9 0F", new byte[4]
-        {
-      (byte) 102,
-      (byte) 185,
-      (byte) 5,
-      (byte) 0
-        });
+        public readonly Memory.Replacer infGroundTargetReplacer = new("0F 85 ?? ?? ?? ?? 40 80 FF 01 0F 85", new byte[6] { 144, 144, 144, 144, 144, 144 });
+        public readonly Memory.Replacer allClassReplacer = new("0F 84 ?? ?? ?? ?? 0F B6 45 31 84 C0 75", new byte[14] { 144, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144, 144 });
+        public readonly Memory.Replacer castTime000Replacer = new("0F B7 48 12 66 85 C9 0F", new byte[4] { 102, 185, 0, 0 });
+        public readonly Memory.Replacer castTime500Replacer = new("0F B7 48 12 66 85 C9 0F", new byte[4] { 102, 185, 5, 0 });
         public IntPtr ActionManager = IntPtr.Zero;
-        private static readonly Dictionary<uint, IntPtr> _stagingActions = new Dictionary<uint, IntPtr>();
-        public static Hook<ActionEditor.GetActionDelegate> GetActionHook;
+        private static readonly Dictionary<uint, IntPtr> _stagingActions = new();
+        public static Hook<GetActionDelegate>? GetActionHook;
         private int _actionID;
-        private SandboxXIV.Structures.Action _action;
+        private Structures.Action _action;
         private string _searchName = string.Empty;
         private bool _saveIcon;
         private bool _saveActionAnimation;
@@ -67,30 +31,29 @@ namespace SandboxXIV.Editors
         private bool _saveCastVFX;
         private bool _saveOmen;
         private readonly ExcelSheet<Lumina.Excel.GeneratedSheets.Action> actionSheet;
-        private List<(long timestamp, IntPtr actor, string actorName, uint id, string actionName)> loggedActions = new List<(long, IntPtr, string, uint, string)>();
+        private List<(long timestamp, IntPtr actor, string actorName, uint id, string actionName)> loggedActions = new();
         private int testing;
-        private readonly Dictionary<(Vector3, float), long> spawnedOmens = new Dictionary<(Vector3, float), long>();
+        private readonly Dictionary<(Vector3, float), long> spawnedOmens = new();
 
-        public IntPtr GetActionDetour(uint id)
+        public static IntPtr GetActionDetour(uint id)
         {
-            IntPtr num;
-            return !ActionEditor._stagingActions.TryGetValue(id, out num) ? ActionEditor.GetActionHook.Original(id) : num;
+            return !_stagingActions.TryGetValue(id, out IntPtr num) ? GetActionHook.Original(id) : num;
         }
 
         public ActionEditor()
         {
-            this.editorConfig = ("Action Editor", new Vector2(500f, 0.0f), (ImGuiWindowFlags)2);
+            editorConfig = ("Action Editor", new Vector2(500f, 0.0f), (ImGuiWindowFlags)2);
             try
             {
-                this.ActionManager = DalamudApi.SigScanner.GetStaticAddressFromSig("41 0F B7 57 04", 0);
+                ActionManager = DalamudApi.SigScanner.GetStaticAddressFromSig("41 0F B7 57 04", 0);
             }
             catch
             {
                 PluginLog.LogError("Failed to load ActionManager!", Array.Empty<object>());
             }
-            if (Plugin.Config.EnableActionEditing)
-                this.ToggleActionEditing(true);
-            this.actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>();
+            if (Plugin.Configuration.EnableActionEditing)
+                ToggleActionEditing(true);
+            actionSheet = DalamudApi.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>();
         }
 
         protected override void Draw()
@@ -99,14 +62,14 @@ namespace SandboxXIV.Editors
             if (ImGui.BeginTabItem("General"))
             {
                 ImGui.Columns(2, "ActionColumns", false);
-                if (ImGui.Checkbox("Enable Action Editing", ref Plugin.Config.EnableActionEditing))
+                if (ImGui.Checkbox("Enable Action Editing", ref Plugin.Configuration.EnableActionEditing))
                 {
-                    this.ToggleActionEditing(Plugin.Config.EnableActionEditing);
-                    Plugin.Config.Save();
+                    ToggleActionEditing(Plugin.Configuration.EnableActionEditing);
+                    Plugin.Configuration.Save();
                 }
                 ImGui.NextColumn();
-                if (ImGui.Checkbox("Enable Omens for The Slice Is Right", ref Plugin.Config.EnableSliceOmens))
-                    Plugin.Config.Save();
+                if (ImGui.Checkbox("Enable Omens for The Slice Is Right", ref Plugin.Configuration.EnableSliceOmens))
+                    Plugin.Configuration.Save();
                 ImGui.Spacing();
                 ImGui.Separator();
                 ImGui.Spacing();
@@ -114,60 +77,59 @@ namespace SandboxXIV.Editors
                 ImGui.TextWrapped("Note that the server still validates this information. These settings can only be used clientside, which is done by lagging, using a 0CD macro, or, if they have a cast time, by using them on the wrong job.");
                 ImGui.Columns(2, "ActionColumns", false);
                 ImGui.NextColumn();
-                ReplacerCheckbox(this.infGroundTargetReplacer, "Infinite Ground Target Distance", (System.Action)null);
-                ReplacerCheckbox(this.allClassReplacer, "Remove Class Requirements", (System.Action)null);
-                ReplacerCheckbox(this.castTime000Replacer, "All Skills Instant Cast", (System.Action)(() => this.castTime500Replacer.Disable()));
-                ReplacerCheckbox(this.castTime500Replacer, "All Skills 0.5s Cast", (System.Action)(() => this.castTime000Replacer.Disable()));
+                ReplacerCheckbox(infGroundTargetReplacer, "Infinite Ground Target Distance", null);
+                ReplacerCheckbox(allClassReplacer, "Remove Class Requirements", null);
+                ReplacerCheckbox(castTime000Replacer, "All Skills Instant Cast", () => castTime500Replacer.Disable());
+                ReplacerCheckbox(castTime500Replacer, "All Skills 0.5s Cast", () => castTime000Replacer.Disable());
                 ImGui.Columns(1);
                 ImGui.EndTabItem();
             }
-            if (Plugin.Config.EnableActionEditing)
+            if (Plugin.Configuration.EnableActionEditing)
             {
                 if (ImGui.BeginTabItem("Action Info"))
                 {
                     if (ImGui.Button("Load"))
                     {
-                        this._action = new SandboxXIV.Structures.Action((uint)this._actionID);
-                        if (this._action.Address == IntPtr.Zero)
-                            this._action = (SandboxXIV.Structures.Action)null;
+                        _action = new Structures.Action((uint)_actionID);
+                        if (_action.Address == IntPtr.Zero)
+                            _action = null;
                     }
                     ImGui.SameLine();
-                    ImGui.InputInt("ID", ref this._actionID);
-                    this._actionID = Math.Max(this._actionID, 0);
+                    ImGui.InputInt("ID", ref _actionID);
+                    _actionID = Math.Max(_actionID, 0);
                     if (ImGui.Button("First"))
                         search(0U, false);
                     ImGui.SameLine();
                     if (ImGui.Button("←"))
-                        search((uint)(this._actionID - 1), true);
+                        search((uint)(_actionID - 1), true);
                     ImGui.SameLine();
                     if (ImGui.Button("→"))
-                        search((uint)(this._actionID + 1), false);
+                        search((uint)(_actionID + 1), false);
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X / 2f);
-                    ImGui.InputText("Search Name", ref this._searchName, 64U);
-                    if (this._action != null)
+                    ImGui.InputText("Search Name", ref _searchName, 64U);
+                    if (_action != null)
                     {
                         ImGui.Spacing();
                         ImGui.Spacing();
                         bool restage = false;
-                        ImGui.TextUnformatted(string.Format("{0} - {1:X}", (object)this._action.Name, (object)this._action.Address));
+                        ImGui.TextUnformatted(string.Format("{0} - {1:X}", _action.Name, _action.Address));
                         if (ImGui.IsItemClicked())
-                            ImGui.SetClipboardText(this._action.Address.ToString("X"));
-                        IntPtr num;
-                        if (ImGui.IsItemClicked((ImGuiMouseButton)1) && ActionEditor._stagingActions.TryGetValue(this._action.ID, out num))
+                            ImGui.SetClipboardText(_action.Address.ToString("X"));
+                        if (ImGui.IsItemClicked((ImGuiMouseButton)1) && _stagingActions.TryGetValue(_action.ID, out IntPtr num))
                             ImGui.SetClipboardText(num.ToString("X"));
                         ImGui.SameLine();
                         if (ImGui.SmallButton("Reset to original"))
                         {
-                            this.ResetAction(this._action.ID, (ActionMod)null);
+                            ResetAction(_action.ID, null);
                             restage = true;
                         }
-                        InputNullableUShort("Icon", ref this._saveIcon, ref this._action.Icon);
-                        InputNullableUShort("Action Animation", ref this._saveActionAnimation, ref this._action.ActionAnimation);
-                        InputNullableUShort("Hit Animation", ref this._saveHitAnimation, ref this._action.HitAnimation);
-                        InputNullableByte("Cast Animation", ref this._saveCastAnimation, ref this._action.CastAnimation);
-                        InputNullableByte("Cast VFX", ref this._saveCastVFX, ref this._action.CastVFX);
-                        InputNullableUShort("Omen", ref this._saveOmen, ref this._action.Omen);
+                        InputNullableUShort("Icon", ref _saveIcon, ref _action.Icon);
+                        InputNullableUShort("Action Animation", ref _saveActionAnimation, ref _action.ActionAnimation);
+                        InputNullableUShort("Hit Animation", ref _saveHitAnimation, ref _action.HitAnimation);
+                        InputNullableByte("Cast Animation", ref _saveCastAnimation, ref _action.CastAnimation);
+                        InputNullableByte("Cast VFX", ref _saveCastVFX, ref _action.CastVFX);
+                        InputNullableUShort("Omen", ref _saveOmen, ref _action.Omen);
                         bool flag1 = false;
                         bool flag2 = false;
                         if (ImGui.Button("Save"))
@@ -181,25 +143,25 @@ namespace SandboxXIV.Editors
                             ImGui.SetTooltip("Saves and resets the base skill to its original state.");
                         if (flag1)
                         {
-                            ActionMod actionMod = new ActionMod()
+                            ActionMod actionMod = new()
                             {
                                 Enabled = true,
-                                ID = (uint)this._actionID,
-                                Icon = this._saveIcon ? new ushort?(this._action.Icon) : new ushort?(),
-                                ActionAnimation = this._saveActionAnimation ? new ushort?(this._action.ActionAnimation) : new ushort?(),
-                                HitAnimation = this._saveHitAnimation ? new ushort?(this._action.HitAnimation) : new ushort?(),
-                                CastAnimation = this._saveCastAnimation ? new byte?(this._action.CastAnimation) : new byte?(),
-                                CastVFX = this._saveCastVFX ? new byte?(this._action.CastVFX) : new byte?(),
-                                Omen = this._saveOmen ? new ushort?(this._action.Omen) : new ushort?()
+                                ID = (uint)_actionID,
+                                Icon = _saveIcon ? new ushort?(_action.Icon) : new ushort?(),
+                                ActionAnimation = _saveActionAnimation ? new ushort?(_action.ActionAnimation) : new ushort?(),
+                                HitAnimation = _saveHitAnimation ? new ushort?(_action.HitAnimation) : new ushort?(),
+                                CastAnimation = _saveCastAnimation ? new byte?(_action.CastAnimation) : new byte?(),
+                                CastVFX = _saveCastVFX ? new byte?(_action.CastVFX) : new byte?(),
+                                Omen = _saveOmen ? new ushort?(_action.Omen) : new ushort?()
                             };
                             if (flag2)
-                                this.ResetAction(actionMod.ID, (ActionMod)null);
-                            Plugin.Config.ActionMods.Add(actionMod);
-                            ActionEditor.AddStagingAction(actionMod.ID);
-                            Plugin.Config.Save();
+                                ResetAction(actionMod.ID, null);
+                            Plugin.Configuration.ActionMods.Add(actionMod);
+                            AddStagingAction(actionMod.ID);
+                            Plugin.Configuration.Save();
                         }
                         if (restage)
-                            ActionEditor.AddStagingAction(this._action.ID);
+                            AddStagingAction(_action.ID);
 
                         void InputNullableUShort(string label, ref bool use, ref ushort val)
                         {
@@ -207,7 +169,7 @@ namespace SandboxXIV.Editors
                             if (ImGui.IsItemHovered())
                                 ImGui.SetTooltip("Save");
                             ImGui.SameLine();
-                            int num = (int)val;
+                            int num = val;
                             if (!ImGui.InputInt(label, ref num))
                                 return;
                             val = (ushort)num;
@@ -220,7 +182,7 @@ namespace SandboxXIV.Editors
                             if (ImGui.IsItemHovered())
                                 ImGui.SetTooltip("Save");
                             ImGui.SameLine();
-                            int num = (int)val;
+                            int num = val;
                             if (!ImGui.InputInt(label, ref num))
                                 return;
                             val = (byte)num;
@@ -231,48 +193,48 @@ namespace SandboxXIV.Editors
                 }
                 if (ImGui.BeginTabItem("Saved Action Mods"))
                 {
-                    this.editorConfig.size.Y = 800f;
-                    for (int index = 0; index < Plugin.Config.ActionMods.Count; ++index)
+                    editorConfig.size.Y = 800f;
+                    for (int index = 0; index < Plugin.Configuration.ActionMods.Count; ++index)
                     {
-                        ActionMod actionMod = Plugin.Config.ActionMods[index];
-                        SandboxXIV.Structures.Action action = new SandboxXIV.Structures.Action(actionMod.ID);
-                        if (ImGui.Checkbox(string.Format("##Enabled{0}", (object)index), ref actionMod.Enabled))
+                        ActionMod actionMod = Plugin.Configuration.ActionMods[index];
+                        Structures.Action action = new(actionMod.ID);
+                        if (ImGui.Checkbox(string.Format("##Enabled{0}", index), ref actionMod.Enabled))
                         {
-                            ActionEditor.AddStagingAction(actionMod.ID);
-                            Plugin.Config.Save();
+                            AddStagingAction(actionMod.ID);
+                            Plugin.Configuration.Save();
                         }
                         ImGui.SameLine();
-                        ImGui.Button(string.Format("Delete##{0}", (object)index));
+                        ImGui.Button(string.Format("Delete##{0}", index));
                         if (ImGui.IsItemHovered())
                         {
                             ImGui.SetTooltip("Right click to delete!");
                             if (ImGui.IsMouseReleased((ImGuiMouseButton)1))
                             {
-                                Plugin.Config.ActionMods.RemoveAt(index);
-                                ActionEditor.AddStagingAction(actionMod.ID);
-                                Plugin.Config.Save();
+                                Plugin.Configuration.ActionMods.RemoveAt(index);
+                                AddStagingAction(actionMod.ID);
+                                Plugin.Configuration.Save();
                             }
                         }
                         ImGui.SameLine();
-                        ImGui.TextUnformatted(string.Format("{0} [{1}]", (object)action.Name, (object)actionMod.ID));
-                        ImGui.TextUnformatted(string.Format("I : {0}", (object)actionMod.Icon));
+                        ImGui.TextUnformatted(string.Format("{0} [{1}]", action.Name, actionMod.ID));
+                        ImGui.TextUnformatted(string.Format("I : {0}", actionMod.Icon));
                         ImGui.SameLine();
-                        ImGui.TextUnformatted(string.Format("AA : {0}", (object)actionMod.ActionAnimation));
+                        ImGui.TextUnformatted(string.Format("AA : {0}", actionMod.ActionAnimation));
                         ImGui.SameLine();
-                        ImGui.TextUnformatted(string.Format("HA : {0}", (object)actionMod.HitAnimation));
+                        ImGui.TextUnformatted(string.Format("HA : {0}", actionMod.HitAnimation));
                         ImGui.SameLine();
-                        ImGui.TextUnformatted(string.Format("CA : {0}", (object)actionMod.CastAnimation));
+                        ImGui.TextUnformatted(string.Format("CA : {0}", actionMod.CastAnimation));
                         ImGui.SameLine();
-                        ImGui.TextUnformatted(string.Format("CV : {0}", (object)actionMod.CastVFX));
+                        ImGui.TextUnformatted(string.Format("CV : {0}", actionMod.CastVFX));
                         ImGui.SameLine();
-                        ImGui.TextUnformatted(string.Format("O : {0}", (object)actionMod.Omen));
-                        if (index < Plugin.Config.ActionMods.Count - 1)
+                        ImGui.TextUnformatted(string.Format("O : {0}", actionMod.Omen));
+                        if (index < Plugin.Configuration.ActionMods.Count - 1)
                             ImGui.Separator();
                     }
                     ImGui.EndTabItem();
                 }
                 else
-                    this.editorConfig.size.Y = 0.0f;
+                    editorConfig.size.Y = 0.0f;
             }
             ImGui.EndTabBar();
 
@@ -294,10 +256,10 @@ namespace SandboxXIV.Editors
                 uint id = start;
                 while (true)
                 {
-                    SandboxXIV.Structures.Action action = new SandboxXIV.Structures.Action(id);
+                    Structures.Action action = new(id);
                     if (!(action.Address == IntPtr.Zero))
                     {
-                        if (!action.Name.ToLower().Contains(this._searchName.ToLower()))
+                        if (!action.Name.ToLower().Contains(_searchName.ToLower()))
                         {
                             if (reverse)
                             {
@@ -319,8 +281,8 @@ namespace SandboxXIV.Editors
             label_9:
                 return;
             label_7:
-                this._actionID = (int)id;
-                this._action = new SandboxXIV.Structures.Action(id);
+                _actionID = (int)id;
+                _action = new Structures.Action(id);
             }
         }
 
@@ -328,15 +290,15 @@ namespace SandboxXIV.Editors
         {
             try
             {
-                if (ActionEditor.GetActionHook == null)
-                    ActionEditor.GetActionHook = new Hook<ActionEditor.GetActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 6B F6 0D"), new ActionEditor.GetActionDelegate(this.GetActionDetour));
+                if (GetActionHook == null)
+                    GetActionHook = new Hook<GetActionDelegate>(DalamudApi.SigScanner.ScanText("E8 ?? ?? ?? ?? 6B F6 0D"), new GetActionDelegate(GetActionDetour));
                 if (enable)
                 {
-                    ActionEditor.SetupStagingActions();
-                    ActionEditor.GetActionHook.Enable();
+                    SetupStagingActions();
+                    GetActionHook.Enable();
                 }
                 else
-                    ActionEditor.GetActionHook.Disable();
+                    GetActionHook.Disable();
             }
             catch
             {
@@ -344,7 +306,7 @@ namespace SandboxXIV.Editors
             }
         }
 
-        private static void ApplyModToAction(SandboxXIV.Structures.Action action, ActionMod mod)
+        private static void ApplyModToAction(Structures.Action action, ActionMod mod)
         {
             if (mod.Icon.HasValue)
                 action.Icon = mod.Icon.Value;
@@ -363,7 +325,7 @@ namespace SandboxXIV.Editors
 
         private ActionMod GenerateOriginalMod(uint id)
         {
-            Lumina.Excel.GeneratedSheets.Action row = this.actionSheet.GetRow(id);
+            Lumina.Excel.GeneratedSheets.Action row = actionSheet.GetRow(id);
             return new ActionMod()
             {
                 ID = id,
@@ -378,7 +340,7 @@ namespace SandboxXIV.Editors
 
         private void ResetAction(uint id, ActionMod mod)
         {
-            ActionMod originalMod = this.GenerateOriginalMod(id);
+            ActionMod originalMod = GenerateOriginalMod(id);
             if (mod != null)
             {
                 if (!mod.Icon.HasValue)
@@ -394,46 +356,46 @@ namespace SandboxXIV.Editors
                 if (!mod.Omen.HasValue)
                     originalMod.Omen = new ushort?();
             }
-            ActionEditor.ApplyModToAction(new SandboxXIV.Structures.Action(id), originalMod);
+            ApplyModToAction(new Structures.Action(id), originalMod);
         }
 
         public override unsafe void Update()
         {
-            if (!Plugin.Config.EnableSliceOmens || DalamudApi.ClientState.TerritoryType != (ushort)144)
+            if (!Plugin.Configuration.EnableSliceOmens || DalamudApi.ClientState.TerritoryType != 144)
                 return;
             foreach (GameObject gameObject in DalamudApi.ObjectTable)
             {
                 if (gameObject is EventObj eventObj)
                 {
                     DateTime now;
-                    if (this.spawnedOmens.ContainsKey((((GameObject)eventObj).Position, ((GameObject)eventObj).Rotation)))
+                    if (spawnedOmens.ContainsKey((eventObj.Position, eventObj.Rotation)))
                     {
                         now = DateTime.Now;
-                        if (now.Ticks - this.spawnedOmens[(((GameObject)eventObj).Position, ((GameObject)eventObj).Rotation)] < 160000000L)
+                        if (now.Ticks - spawnedOmens[(eventObj.Position, eventObj.Rotation)] < 160000000L)
                             continue;
                     }
-                    switch (((GameObject)eventObj).DataId)
+                    switch (eventObj.DataId)
                     {
                         case 2010777:
-                            Omen omen1 = new Omen((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)(void*)((GameObject)eventObj).Address, 2U, 2.5f, 28f, false, 10.3f, 1.570796f);
-                            Dictionary<(Vector3, float), long> spawnedOmens1 = this.spawnedOmens;
-                            (Vector3, float) key1 = (((GameObject)eventObj).Position, ((GameObject)eventObj).Rotation);
+                            Omen omen1 = new((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)(void*)eventObj.Address, 2U, 2.5f, 28f, false, 10.3f, 1.570796f);
+                            Dictionary<(Vector3, float), long> spawnedOmens1 = spawnedOmens;
+                            (Vector3, float) key1 = (eventObj.Position, eventObj.Rotation);
                             now = DateTime.Now;
                             long ticks1 = now.Ticks;
                             spawnedOmens1[key1] = ticks1;
                             continue;
                         case 2010778:
-                            Omen omen2 = new Omen((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)(void*)((GameObject)eventObj).Address, 188U, 2.5f, 28f, true, 10.3f, 1.570796f);
-                            Dictionary<(Vector3, float), long> spawnedOmens2 = this.spawnedOmens;
-                            (Vector3, float) key2 = (((GameObject)eventObj).Position, ((GameObject)eventObj).Rotation);
+                            Omen omen2 = new((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)(void*)eventObj.Address, 188U, 2.5f, 28f, true, 10.3f, 1.570796f);
+                            Dictionary<(Vector3, float), long> spawnedOmens2 = spawnedOmens;
+                            (Vector3, float) key2 = (eventObj.Position, eventObj.Rotation);
                             now = DateTime.Now;
                             long ticks2 = now.Ticks;
                             spawnedOmens2[key2] = ticks2;
                             continue;
                         case 2010779:
-                            Omen omen3 = new Omen((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)(void*)((GameObject)eventObj).Address, 168U, 11f, false, 10.3f);
-                            Dictionary<(Vector3, float), long> spawnedOmens3 = this.spawnedOmens;
-                            (Vector3, float) key3 = (((GameObject)eventObj).Position, ((GameObject)eventObj).Rotation);
+                            Omen omen3 = new((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)(void*)eventObj.Address, 168U, 11f, false, 10.3f);
+                            Dictionary<(Vector3, float), long> spawnedOmens3 = spawnedOmens;
+                            (Vector3, float) key3 = (eventObj.Position, eventObj.Rotation);
                             now = DateTime.Now;
                             long ticks3 = now.Ticks;
                             spawnedOmens3[key3] = ticks3;
@@ -447,42 +409,41 @@ namespace SandboxXIV.Editors
 
         private static void SetupStagingActions()
         {
-            Dictionary<uint, bool> moddedActions = new Dictionary<uint, bool>();
-            Plugin.Config.ActionMods.ForEach((System.Action<ActionMod>)(mod =>
+            Dictionary<uint, bool> moddedActions = new();
+            Plugin.Configuration.ActionMods.ForEach(mod =>
            {
                if (!mod.Enabled)
                    return;
                moddedActions[mod.ID] = true;
-           }));
+           });
             foreach (KeyValuePair<uint, bool> keyValuePair in moddedActions)
-                ActionEditor.AddStagingAction(keyValuePair.Key);
+                AddStagingAction(keyValuePair.Key);
         }
 
         private static unsafe void AddStagingAction(uint id)
         {
-            IntPtr num1 = ActionEditor.GetActionHook.Original(id);
-            int num2 = (int)*(byte*)(void*)num1;
+            IntPtr num1 = GetActionHook.Original(id);
+            int num2 = *(byte*)(void*)num1;
             do
                 ;
-            while (*(byte*)(void*)(num1 + num2++) != (byte)0);
-            IntPtr ptr;
-            if (!ActionEditor._stagingActions.TryGetValue(id, out ptr))
-                ActionEditor._stagingActions[id] = ptr = Marshal.AllocHGlobal(num2 + 16);
+            while (*(byte*)(void*)(num1 + num2++) != 0);
+            if (!_stagingActions.TryGetValue(id, out IntPtr ptr))
+                _stagingActions[id] = ptr = Marshal.AllocHGlobal(num2 + 16);
             for (int index = 0; index < num2; ++index)
                 *(IntPtr*)(void*)(ptr + index) = *(IntPtr*)(void*)(num1 + index);
-            SandboxXIV.Structures.Action action = new SandboxXIV.Structures.Action(ptr);
-            Plugin.Config.ActionMods.ForEach((System.Action<ActionMod>)(mod =>
+            Structures.Action action = new(ptr);
+            Plugin.Configuration.ActionMods.ForEach(mod =>
            {
                if (!mod.Enabled || (int)id != (int)mod.ID)
                    return;
-               ActionEditor.ApplyModToAction(action, mod);
-           }));
+               ApplyModToAction(action, mod);
+           });
         }
 
         public override void Dispose()
         {
-            ActionEditor.GetActionHook?.Dispose();
-            foreach (KeyValuePair<uint, IntPtr> stagingAction in ActionEditor._stagingActions)
+            GetActionHook?.Dispose();
+            foreach (KeyValuePair<uint, IntPtr> stagingAction in _stagingActions)
                 Marshal.FreeHGlobal(stagingAction.Value);
         }
 
